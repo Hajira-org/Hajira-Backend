@@ -1,30 +1,21 @@
-require('dotenv').config();
-const express = require('express');
+const express = require("express");
+const dotenv = require("dotenv");
+const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
+const cors = require("cors");
 
+dotenv.config();
+connectDB();
 
 const app = express();
+app.use(cors());
+app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.send("Hajira Backend API Running...");
+});
 
-app.get( '/' , (req, res)=>{
-    res.json({message: "Hello from server!"})
-})
+app.use("/api/auth", authRoutes);
 
-
-
-app.listen(process.env.PORT, () => {
-  console.log(`'Server is running on http://localhost:${process.env.PORT}'`);
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
