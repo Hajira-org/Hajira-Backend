@@ -62,23 +62,32 @@ const signin = async (req, res) => {
 // ------------------- SETUP PROFILE -------------------
 const setupProfile = async (req, res) => {
   try {
-    const { role, age, skills, bio, location, company, category } = req.body;
-
-    // Replace this with actual logged-in user ID from auth middleware
-    const userId = req.user?.id; // requires auth middleware
+    const { role, seeker, poster } = req.body;
+    const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const updateData = { role, bio, location };
+    let updateData = { role };
 
-    if (role === "seeker") {
-      updateData.age = age;
-      updateData.skills = skills; // should be array
-    } else {
-      updateData.company = company;
-      updateData.category = category;
+    if (role === "seeker" && seeker) {
+      updateData["seeker.age"] = seeker.age;
+      updateData["seeker.skills"] = seeker.skills;
+      updateData["seeker.bio"] = seeker.bio;
+      updateData["seeker.location"] = seeker.location;
     }
 
-    const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
+    if (role === "poster" && poster) {
+      updateData["poster.company"] = poster.company;
+      updateData["poster.category"] = poster.category;
+      updateData["poster.bio"] = poster.bio;
+      updateData["poster.location"] = poster.location;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true }
+    );
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({ message: "Profile setup complete", user });
@@ -87,5 +96,6 @@ const setupProfile = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 module.exports = { signup, signin, setupProfile };
