@@ -27,9 +27,13 @@ const createJob = async (req, res) => {
 // Get available jobs (for seekers) with poster name
 const getAvailableJobs = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: "No user found in request" });
+    }
+
     const jobs = await Job.find({ status: "open" })
       .populate({ path: "poster", select: "name" })
-      .populate({ path: "applications.applicant", select: "name" }) // populate applicants
+      .populate({ path: "applications.applicant", select: "name" })
       .sort({ createdAt: -1 });
 
     const jobsWithApplied = jobs.map(job => ({
@@ -42,7 +46,9 @@ const getAvailableJobs = async (req, res) => {
       salary: job.salary,
       workModel: job.workModel,
       status: job.status,
-      applied: job.applications.some(app => app.applicant._id.toString() === req.user.id), // ✅ mark if current seeker applied
+      applied: job.applications.some(
+        app => app.applicant && app.applicant._id.toString() === req.user.id
+      ),
     }));
 
     res.json({ jobs: jobsWithApplied });
