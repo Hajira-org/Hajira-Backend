@@ -1,3 +1,4 @@
+// models/job.js
 const mongoose = require("mongoose");
 
 const jobSchema = new mongoose.Schema(
@@ -10,6 +11,15 @@ const jobSchema = new mongoose.Schema(
     location: { type: String },
     workModel: { type: String, enum: ["Remote", "Hybrid", "On-site", "Flexible"], default: "Flexible" },
     status: { type: String, enum: ["open", "closed"], default: "open" },
+
+    // New: Applications
+    applications: [
+      {
+        applicant: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        bid: { type: String },   // e.g., proposed salary or bid
+        appliedAt: { type: Date, default: Date.now },
+      }
+    ]
   },
   { timestamps: true }
 );

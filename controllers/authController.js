@@ -5,7 +5,11 @@ const User = require("../models/User");
 // ------------------- SIGNUP -------------------
 const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body; // 👈 include role
+
+    if (!["seeker", "poster"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
@@ -18,22 +22,24 @@ const signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role, // 👈 store role
     });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
     res.status(201).json({
       message: "User registered successfully",
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
+// ------------------- SIGNIN -------------------
 // ------------------- SIGNIN -------------------
 const signin = async (req, res) => {
   try {
@@ -45,19 +51,25 @@ const signin = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
     res.json({
       message: "Login successful",
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role // 👈 add this
+      },
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // ------------------- SETUP PROFILE -------------------
 const setupProfile = async (req, res) => {

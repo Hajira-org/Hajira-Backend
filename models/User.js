@@ -18,8 +18,14 @@ const userSchema = new mongoose.Schema(
       title: { type: String },
       industry: { type: String },
       salary: { type: String },
-      workModel: { type: String, enum: ["Remote", "Hybrid", "On-site", "Flexible"] },
-      alerts: { type: String, enum: ["Daily", "Weekly", "Bi-weekly", "Monthly"] },
+      workModel: {
+        type: String,
+        enum: ["Remote", "Hybrid", "On-site", "Flexible"],
+      },
+      alerts: {
+        type: String,
+        enum: ["Daily", "Weekly", "Bi-weekly", "Monthly"],
+      },
       skills: [{ type: String }],
       linkedin: { type: String },
       github: { type: String },
@@ -28,7 +34,10 @@ const userSchema = new mongoose.Schema(
       applicationHistory: [
         {
           jobId: { type: mongoose.Schema.Types.ObjectId, ref: "Job" },
-          status: { type: String, enum: ["applied", "interview", "rejected", "hired"] },
+          status: {
+            type: String,
+            enum: ["applied", "interview", "rejected", "hired"],
+          },
           appliedAt: { type: Date, default: Date.now },
         },
       ],
@@ -44,7 +53,10 @@ const userSchema = new mongoose.Schema(
       colors: { type: String }, // hex value
       ats: { type: String },
       hris: { type: String },
-      plan: { type: String, enum: ["Starter", "Professional", "Enterprise"] },
+      plan: {
+        type: String,
+        enum: ["Starter", "Professional", "Enterprise"],
+      },
       template: { type: String },
       tracking: { type: Boolean, default: false },
       jobs: [
@@ -63,4 +75,5 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("User", userSchema);
+// ✅ Prevent OverwriteModelError in dev (Nodemon reloads)
+module.exports = mongoose.models.User || mongoose.model("User", userSchema);
