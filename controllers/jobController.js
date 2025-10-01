@@ -25,6 +25,7 @@ const createJob = async (req, res) => {
 };
 
 // Get available jobs (for seekers) with poster name
+// Get available jobs (for seekers) with poster object
 const getAvailableJobs = async (req, res) => {
   try {
     if (!req.user) {
@@ -32,7 +33,7 @@ const getAvailableJobs = async (req, res) => {
     }
 
     const jobs = await Job.find({ status: "open" })
-      .populate({ path: "poster", select: "name" })
+      .populate({ path: "poster", select: "name email" }) // populate more fields if needed
       .populate({ path: "applications.applicant", select: "name" })
       .sort({ createdAt: -1 });
 
@@ -41,7 +42,7 @@ const getAvailableJobs = async (req, res) => {
       title: job.title,
       description: job.description,
       location: job.location,
-      poster: job.poster ? job.poster.name : "Unknown",
+      poster: job.poster || { name: "Unknown" }, // keep as object
       requirements: job.requirements,
       salary: job.salary,
       workModel: job.workModel,
