@@ -5,7 +5,7 @@ const User = require("../models/User");
 // ------------------- SIGNUP -------------------
 const signup = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body; // 👈 include role
+    const { name, email, password, role } = req.body;
 
     if (!["seeker", "poster"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
@@ -15,14 +15,13 @@ const signup = async (req, res) => {
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      role, // 👈 store role
+      role,
     });
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -32,14 +31,18 @@ const signup = async (req, res) => {
     res.status(201).json({
       message: "User registered successfully",
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// ------------------- SIGNIN -------------------
 // ------------------- SIGNIN -------------------
 const signin = async (req, res) => {
   try {
@@ -58,11 +61,14 @@ const signin = async (req, res) => {
     res.json({
       message: "Login successful",
       token,
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email, 
-        role: user.role // 👈 add this
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        location: user.location,
+        stats: user.stats,
       },
     });
   } catch (error) {
@@ -70,29 +76,53 @@ const signin = async (req, res) => {
   }
 };
 
-
-// ------------------- SETUP PROFILE -------------------
+// ------------------- SETUP / UPDATE PROFILE -------------------
+// ------------------- SETUP / UPDATE PROFILE -------------------
 const setupProfile = async (req, res) => {
   try {
-    const { role, seeker, poster } = req.body;
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    let updateData = { role };
+    const { role, avatar, location, bio, seeker, poster } = req.body;
+    const updateData = {};
 
-    if (role === "seeker" && seeker) {
-      updateData["seeker.age"] = seeker.age;
-      updateData["seeker.skills"] = seeker.skills;
-      updateData["seeker.bio"] = seeker.bio;
-      updateData["seeker.location"] = seeker.location;
-    }
+    if (role) updateData.role = role; // ✅ <-- Add this line
+    if (avatar) updateData.avatar = avatar;
+    if (location) updateData.location = location;
+    if (bio) updateData.bio = bio;
 
-    if (role === "poster" && poster) {
-      updateData["poster.company"] = poster.company;
-      updateData["poster.category"] = poster.category;
-      updateData["poster.bio"] = poster.bio;
-      updateData["poster.location"] = poster.location;
-    }
+    if (seeker) updateData.seeker = seeker;
+    if (poster) updateData.poster = poster;
+
+    const user = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      message: "Profile updated successfully",
+      role: user.role, // ✅ include updated role
+      user,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// ------------------- UPDATE PROFILE -------------------
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { company, about } = req.body;
+
+    // if file uploaded, get file path
+    const logoPath = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+    const updateData = {
+      "poster.company": company,
+      "poster.about": about,
+    };
+    if (logoPath) updateData["poster.logo"] = logoPath;
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -102,12 +132,43 @@ const setupProfile = async (req, res) => {
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json({ message: "Profile setup complete", user });
+    res.json({ message: "Profile updated successfully", user });
   } catch (err) {
-    console.error(err);
+    console.error("Profile update error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+// ------------------- CHANGE PASSWORD -------------------
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Both fields are required" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error("Password change error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
 
-module.exports = { signup, signin, setupProfile };
+
+module.exports = { signup, signin, setupProfile, updateProfile, changePassword };

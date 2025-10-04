@@ -9,12 +9,21 @@ const userSchema = new mongoose.Schema(
     // Role is chosen during profile setup
     role: { type: String, enum: ["seeker", "poster"], default: null },
 
+    // ------------------ Shared fields ------------------
+    avatar: { type: String, default: "" }, // 👈 Profile image URL
+    location: { type: String, default: "" }, // 👈 Country or city
+    bio: { type: String, default: "" }, // 👈 Optional short bio
+    stats: {
+      totalJobsApplied: { type: Number, default: 0 },
+      totalJobsCompleted: { type: Number, default: 0 },
+      rating: { type: Number, default: 0 },
+    },
+
     // ------------------ Seeker-specific fields ------------------
     seeker: {
       headline: { type: String },
-      bio: { type: String },
       profilePic: { type: String }, // store file path or URL
-      resume: { type: String }, // store file path or URL
+      resume: { type: String },
       title: { type: String },
       industry: { type: String },
       salary: { type: String },
@@ -47,10 +56,10 @@ const userSchema = new mongoose.Schema(
     poster: {
       company: { type: String },
       about: { type: String },
-      logo: { type: String }, // file path or URL
+      logo: { type: String },
       team: { type: String },
       careerURL: { type: String },
-      colors: { type: String }, // hex value
+      colors: { type: String },
       ats: { type: String },
       hris: { type: String },
       plan: {
@@ -68,12 +77,10 @@ const userSchema = new mongoose.Schema(
       ],
     },
 
-    // ------------------ Shared fields ------------------
     compliance: { type: Boolean, default: false },
     termsAccepted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-// ✅ Prevent OverwriteModelError in dev (Nodemon reloads)
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);
