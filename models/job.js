@@ -20,7 +20,7 @@ const jobSchema = new mongoose.Schema(
     // ✅ Work model (Remote / Hybrid / etc.)
     workModel: { 
       type: String, 
-      enum: ["Remote", "Hybrid", "On-site", "Flexible"], 
+      enum: ["Same Day", "Scheduled", "Flexible"], 
       default: "Flexible" 
     },
 

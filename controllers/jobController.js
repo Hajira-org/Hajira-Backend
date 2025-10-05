@@ -20,11 +20,12 @@ const createJob = async (req, res) => {
 
     res.status(201).json({ message: "Job created successfully", job });
   } catch (error) {
+    console.error("Job creation error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// Get available jobs (for seekers) with poster name
+
 // Get available jobs (for seekers) with poster object
 const getAvailableJobs = async (req, res) => {
   try {
@@ -118,7 +119,7 @@ const deleteJob = async (req, res) => {
 const applyJob = async (req, res) => {
     try {
       if (req.user.role !== "seeker") {
-        return res.status(403).json({ message: "Only seekers can apply" });
+        return res.status(403).json({ message: "Only Job seekers can apply" });
       }
   
       const job = await Job.findById(req.params.id);
