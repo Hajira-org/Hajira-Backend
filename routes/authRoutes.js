@@ -4,7 +4,8 @@ const {
   signin,
   setupProfile,
   updateProfile,
-  changePassword, // 👈 added here
+  changePassword,
+  getUser, // 👈 added
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
@@ -20,6 +21,9 @@ router.post("/setup", protect, setupProfile);
 router.put("/profile", protect, upload.single("logo"), updateProfile);
 
 // ---------------- PASSWORD ----------------
-router.put("/change-password", protect, changePassword); // 👈 new route
+router.put("/change-password", protect, changePassword);
+
+// ---------------- USER ----------------
+router.get("/me", protect, getUser); // 👈 new route to fetch user data
 
 module.exports = router;

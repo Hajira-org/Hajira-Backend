@@ -113,15 +113,25 @@ const setupProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { company, about } = req.body;
+    const { name, bio, seeker, company, about } = req.body;
 
-    // if file uploaded, get file path
+    // If file uploaded, get file path
     const logoPath = req.file ? `/uploads/${req.file.filename}` : undefined;
 
-    const updateData = {
-      "poster.company": company,
-      "poster.about": about,
-    };
+    const updateData = {};
+
+    // ✅ Root-level fields
+    if (name) updateData.name = name;
+    if (bio) updateData.bio = bio;
+
+    // ✅ Nested seeker fields
+    if (seeker && seeker.skills) {
+      updateData["seeker.skills"] = seeker.skills;
+    }
+
+    // ✅ Poster info
+    if (company) updateData["poster.company"] = company;
+    if (about) updateData["poster.about"] = about;
     if (logoPath) updateData["poster.logo"] = logoPath;
 
     const user = await User.findByIdAndUpdate(
@@ -130,14 +140,24 @@ const updateProfile = async (req, res) => {
       { new: true }
     );
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    res.json({ message: "Profile updated successfully", user });
+    res.json({
+      message: "Profile updated successfully",
+      user,
+    });
   } catch (err) {
     console.error("Profile update error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
 };
+
+
 // ------------------- CHANGE PASSWORD -------------------
 const changePassword = async (req, res) => {
   try {
@@ -168,7 +188,26 @@ const changePassword = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+// ------------------- FETCH USER -------------------
+const getUser = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select("-password"); // exclude password
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      message: "User fetched successfully",
+      user,
+    });
+  } catch (err) {
+    console.error("Fetch user error:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
 
 
 
-module.exports = { signup, signin, setupProfile, updateProfile, changePassword };
+module.exports = { signup, signin, setupProfile, updateProfile, changePassword, getUser };
