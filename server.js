@@ -1,10 +1,11 @@
-const express = require("express");
+require("dotenv").config();
 const dotenv = require("dotenv");
+const express = require("express");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const cors = require("cors");
 const jobRoutes = require("./routes/jobRoutes");
-
+const uploadRoutes = require("./routes/upload");
 
 dotenv.config();
 connectDB();
@@ -15,6 +16,8 @@ app.use(express.json());
 app.use("/api/jobs", jobRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoutes);
+app.use("/api/upload", uploadRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("Hajira Backend API Running...");

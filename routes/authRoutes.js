@@ -8,7 +8,7 @@ const {
   getUser, // 👈 added
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
-const upload = require("../middleware/upload");
+const { upload } = require("../models/cloudinary");
 
 const router = express.Router();
 

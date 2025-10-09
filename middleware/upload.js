@@ -1,10 +1,10 @@
-const multer = require("multer");
-const path = require("path");
+const express = require("express");
+const router = express.Router();
+const { upload } = require("../models/cloudinary");
+const { protect } = require("../middleware/authMiddleware");
+const { uploadAvatar } = require("../controllers/uploadController");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname)),
-});
+// 🔐 Protected route: must be logged in
+router.post("/avatar", protect, upload.single("file"), uploadAvatar);
 
-module.exports = multer({ storage });
+module.exports = router;
