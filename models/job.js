@@ -17,6 +17,19 @@ const jobSchema = new mongoose.Schema(
     salary: { type: String, trim: true },
     location: { type: String, trim: true },
 
+    // ✅ GeoJSON for coordinates
+    geoLocation: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        index: "2dsphere",
+      },
+    },
+
     // ✅ Work model (Remote / Hybrid / etc.)
     workModel: { 
       type: String, 
