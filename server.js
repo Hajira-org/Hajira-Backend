@@ -48,7 +48,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: 
-    ["hajira-org.netlify.app",
+    ["https://hajira-org.netlify.app",
       "http://localhost:3000"
     ], //  will be updated to my React frontend URL
     methods: ["GET", "POST"],
