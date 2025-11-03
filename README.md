@@ -1,7 +1,6 @@
 # Hajira Backend
 A Node.js + Express + MongoDB backend for the Hajira platform — a marketplace for connecting people with short-term jobs, similar to Uber but for work.  
 
----
 
 ## Features Include :
 - **Authentication & Authorization**
