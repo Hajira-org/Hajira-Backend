@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
-const http = require("http");              // 👈 for wrapping Express
-const { Server } = require("socket.io");   // 👈 import Socket.IO
+const http = require("http");              
+const { Server } = require("socket.io");  
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
@@ -88,7 +88,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: 
-    ["https://hajira-org.netlify.app",
+    ["https://hajira-org.netlify.app", // the first link
+      "http://hajira-org.vercel.app/", //alternative link if experiencing downtimes
       "http://localhost:3000"
     ], //  will be updated to my React frontend URL
     methods: ["GET", "POST"],
