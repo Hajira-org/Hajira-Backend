@@ -113,21 +113,117 @@ const getAvailableJobs = async (req, res) => {
 
 // Other functions stay the same...
 // Get jobs for poster (with applications)
+// Get jobs for poster (with applications + accepted applicant)
+// Get jobs for poster (only open jobs)
 const getJobs = async (req, res) => {
   try {
     if (req.user.role !== "poster") {
       return res.status(403).json({ message: "Only posters can view their jobs" });
     }
 
-    const jobs = await Job.find({ poster: req.user.id })
+    // 🟢 Fetch only jobs that are still open
+    const jobs = await Job.find({ poster: req.user.id, status: "open" })
       .populate({
         path: "applications.applicant",
-        select: "name email" // include name (and email if you want) of applicants
+        select: "name email",
+      })
+      .populate({
+        path: "acceptedApplicant",
+        select: "name email",
       })
       .sort({ createdAt: -1 });
 
     res.json({ jobs });
   } catch (error) {
+    console.error("Error in getJobs:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+// Mark accepted job as completed
+const markJobComplete = async (req, res) => {
+  try {
+    if (req.user.role !== "poster") {
+      return res.status(403).json({ message: "Only posters can complete jobs" });
+    }
+
+    const job = await Job.findOne({ _id: req.params.id, poster: req.user.id });
+
+    if (!job) return res.status(404).json({ message: "Job not found" });
+    if (job.status !== "accepted") {
+      return res.status(400).json({ message: "Only accepted jobs can be marked complete" });
+    }
+
+    job.status = "closed";
+    await job.save();
+
+    res.json({ message: "✅ Job marked as complete", job });
+  } catch (error) {
+    console.error("Error in markJobComplete:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+const acceptJobApplication = async (req, res) => {
+  try {
+    if (req.user.role !== "poster") {
+      return res.status(403).json({ message: "Only posters can accept applicants" });
+    }
+
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ message: "Job not found" });
+
+    const { applicantId } = req.body;
+    if (!applicantId) return res.status(400).json({ message: "Applicant ID required" });
+
+    // ✅ Verify ownership
+    if (job.poster.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized to accept this job" });
+    }
+
+    // ✅ Check applicant exists
+    const applicantExists = job.applications.some(
+      (app) => app.applicant.toString() === applicantId
+    );
+    if (!applicantExists) {
+      return res.status(400).json({ message: "Applicant not found in this job" });
+    }
+
+    // ✅ Mark job as accepted and record accepted applicant
+    job.status = "accepted"; // was "closed" before — changed to "accepted"
+    job.acceptedApplicant = applicantId;
+
+    // ✅ Clear all applications after accepting
+    job.applications = [];
+
+    await job.save();
+
+    res.json({ message: "✅ Applicant accepted successfully", job });
+  } catch (error) {
+    console.error("Error in acceptJobApplication:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get jobs that have been accepted (poster view)
+const getAcceptedJobs = async (req, res) => {
+  try {
+    if (req.user.role !== "poster") {
+      return res.status(403).json({ message: "Only posters can view accepted jobs" });
+    }
+
+    const jobs = await Job.find({ poster: req.user.id, status: "accepted" })
+      .populate({
+        path: "acceptedApplicant",
+        select: "name email",
+      })
+      .sort({ createdAt: -1 });
+
+    res.json({ jobs });
+  } catch (error) {
+    console.error("Error in getAcceptedJobs:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -199,6 +295,9 @@ module.exports = {
   updateJob,
   deleteJob,
   getAvailableJobs,
-  applyJob, 
+  applyJob,
+  acceptJobApplication,
+  markJobComplete,
+  getAcceptedJobs,
 };
 

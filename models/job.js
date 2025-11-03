@@ -44,6 +44,18 @@ const jobSchema = new mongoose.Schema(
       default: "open" 
     },
 
+    status: {
+      type: String,
+      enum: ["open", "closed", "accepted"],
+      default: "open",
+    },
+    acceptedApplicant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    
+
     // ✅ Optional — useful for showing categories like “Car Washing” or “Tutoring”
     category: { type: String, trim: true },
 

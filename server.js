@@ -8,6 +8,7 @@ const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const uploadRoutes = require("./routes/upload");
 const Message = require("./models/message.model");
+const User = require("./models/User"); 
 
 
 
@@ -40,6 +41,45 @@ app.get("/api/messages/:roomId", async (req, res) => {
   }
 });
 
+app.get("/api/chats/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // 1️⃣ Fetch all messages involving this user
+    const messages = await Message.find({
+      $or: [{ sender: userId }, { receiver: userId }],
+    }).sort({ time: -1 }); // newest first
+
+    // 2️⃣ Group messages by the other participant
+    const chatMap = new Map();
+
+    for (const msg of messages) {
+      const otherUserId = msg.sender === userId ? msg.receiver : msg.sender;
+
+      if (!chatMap.has(otherUserId)) {
+        // Fetch the other user's details
+        const otherUser = await User.findById(otherUserId).select("name email avatar");
+
+        chatMap.set(otherUserId, {
+          applicantId: otherUserId,
+          name: otherUser?.name || "Unknown",
+          email: otherUser?.email || "Unknown",
+          avatar: otherUser?.avatar || null,
+          lastMessage: msg.message,
+          lastMessageTime: msg.time,
+        });
+      }
+    }
+
+    // 3️⃣ Convert map to array
+    const chats = Array.from(chatMap.values());
+
+    res.json({ chats });
+  } catch (err) {
+    console.error("Failed to fetch chats:", err);
+    res.status(500).json({ error: "Failed to fetch chats" });
+  }
+});
 
 // --- Create HTTP server ---
 const server = http.createServer(app);
