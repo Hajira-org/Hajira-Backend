@@ -89,7 +89,7 @@ const io = new Server(server, {
   cors: {
     origin: 
     ["https://hajira-org.netlify.app", // the first link
-      "http://hajira-org.vercel.app/", //alternative link if experiencing downtimes
+      "http://hajira-org.vercel.app", //alternative link if experiencing downtimes
       "http://localhost:3000"
     ], //  will be updated to my React frontend URL
     methods: ["GET", "POST"],
