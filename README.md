@@ -1,4 +1,7 @@
+![Vercel Deploy](https://deploy-badge.vercel.app/vercel/hajira-org?name=Hajira.org%2Fvercel)
+![Netlify Deploy](http://img.shields.io/netlify/0868acae-7f5d-4997-af37-dce357af9582?logo=netlify&label=Hajira%2Fnetlify)
 [![Auto Changelog](https://github.com/Hajira-org/Hajira-Backend/actions/workflows/changelog.yml/badge.svg)](https://github.com/Hajira-org/Hajira-Backend/actions/workflows/changelog.yml)
+
 # Hajira Backend
 A Node.js + Express + MongoDB backend for the Hajira platform — a marketplace for connecting people with short-term jobs, similar to Uber but for work.  
 
