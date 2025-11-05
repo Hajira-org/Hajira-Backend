@@ -25,5 +25,9 @@ A Node.js + Express + MongoDB backend for the Hajira platform — a marketplace 
   - Jobs filtered by location
   - Integration-ready for geolocation (Leaflet.js)
 
+##Database Structure (privacy focused)
+  - For the database we decided to isolate different items such as users, their messages, the jobs posted and applied jobs, this ensures the only link to the users and jobs     is their id therefore minimizing any leaks and making the database faster in retrieval.
+
+
 ##  Changelog
 All notable changes are documented in the [CHANGELOG.md](./CHANGELOG.md).
