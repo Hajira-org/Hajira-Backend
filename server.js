@@ -87,14 +87,16 @@ const server = http.createServer(app);
 // --- Initialize Socket.IO ---
 const io = new Server(server, {
   cors: {
-    origin: 
-    ["https://hajira-org.netlify.app", // the first link
-      "http://hajira-org.vercel.app", //alternative link if experiencing downtimes
-      "http://localhost:3000"
-    ], //  will be updated to my React frontend URL
+    origin: [
+      "https://hajira-org.vercel.app",   // My production frontend
+      "https://hajira-org.netlify.app",  // optional old one
+      "http://localhost:3000",           // for local dev
+    ],
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
+
 
 
 
